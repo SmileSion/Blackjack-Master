@@ -11,3 +11,6 @@ SERVER_PORT = 65432
 
 # 游戏规则
 DEALER_HIT_THRESHOLD = 17  # 庄家小于 17 点必须要牌
+
+#使用的牌数
+PILES = 6

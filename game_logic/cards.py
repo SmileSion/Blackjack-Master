@@ -1,7 +1,7 @@
 import random
+import config
 
-#使用的牌数
-PILES = 6
+
 
 # 牌面点数
 CARD_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
@@ -9,7 +9,7 @@ CARD_VALUES = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
 
 def get_deck():
     #生成牌堆
-    deck = [rank for rank in CARD_VALUES] * 4 * PILES
+    deck = [rank for rank in CARD_VALUES] * 4 * config.PILES
     random.shuffle(deck)
     return deck
 

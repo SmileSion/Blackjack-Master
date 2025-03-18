@@ -47,7 +47,7 @@ def main():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((config.SERVER_HOST, config.SERVER_PORT))
     server.listen(5)
-    print(f"服务器启动，监听 {host}:{port}...")
+    print(f"服务器启动，监听 {host}:{config.SERVER_PORT}...")
 
     while True:
         conn, addr = server.accept()
