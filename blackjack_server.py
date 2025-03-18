@@ -2,11 +2,13 @@ import socket
 import threading
 import config
 from game_logic.blackjack import start_game, hit_card, stand
+from game_logic.funds import set_funds, set_bet, get_funds_info
 
 def handle_client(conn, addr):
     """处理客户端连接"""
     print(f"玩家 {addr} 连接成功")
-    conn.sendall("欢迎来到 21 点！请输入你的昵称：\n".encode("utf-8"))
+    conn.sendall("🎉 欢迎来到 21 点！🎉\n".encode("utf-8"))
+    conn.sendall("请输入你的昵称：\n".encode("utf-8"))
 
     # 获取玩家昵称作为玩家 ID
     player_id = conn.recv(1024).decode().strip()
@@ -16,7 +18,17 @@ def handle_client(conn, addr):
 
     print(f"玩家 ID: {player_id}")
 
-    conn.sendall(f"欢迎，{player_id}！输入 'start' 开始游戏。\n输入 'exit' 退出游戏。\n".encode("utf-8"))
+    # 获取起始资金
+    conn.sendall("💰 请输入你的起始资金（伊甸币）：\n".encode("utf-8"))
+    funds = int(conn.recv(1024).decode().strip())
+    set_funds(player_id, funds)
+
+    conn.sendall(f"👋 欢迎，{player_id}！\n" \
+                 f"💰 你的起始资金为 {funds} 伊甸币。\n" \
+                 f"🃏 游戏指令：\n" \
+                 f"  - 输入 'start' 开始游戏\n" \
+                 f"  - 输入 'funds' 查看资金\n" \
+                 f"  - 输入 'exit' 退出游戏\n".encode("utf-8"))
     
     while True:
         try:
@@ -25,17 +37,28 @@ def handle_client(conn, addr):
                 break
 
             if data == "start":
+                # 获取下注金额
+                conn.sendall("💰 请输入你的下注金额（伊甸币）：\n".encode("utf-8"))
+                bet = int(conn.recv(1024).decode().strip())
+                set_bet(player_id, bet)
                 response = start_game(player_id)
             elif data == "hit":
                 response = hit_card(player_id)
             elif data == "stand":
                 response = stand(player_id)
+            elif data == "funds":
+                response = get_funds_info(player_id)
             elif data == "exit":  # 添加处理 exit 输入
                 response = "👋 你已退出游戏。感谢你的参与！"
                 conn.sendall(response.encode() + b"\n")
                 break  # 退出循环，关闭连接
             else:
-                response = "❓ 无效指令，请输入 'start' / 'hit' / 'stand'。"
+                response = "❌ 无效指令，请输入以下指令之一：\n" \
+                           "  - 'start'：开始游戏\n" \
+                           "  - 'hit'：要牌\n" \
+                           "  - 'stand'：停牌\n" \
+                           "  - 'funds'：查看资金\n" \
+                           "  - 'exit'：退出游戏"
 
             conn.sendall(response.encode() + b"\n")
         except ConnectionResetError:

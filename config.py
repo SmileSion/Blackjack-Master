@@ -1,5 +1,8 @@
 # config.py
 
+#分隔符
+separator = "\n" + "=" * 30 + "\n"
+
 # Redis 配置
 REDIS_HOST = "192.168.3.225"
 REDIS_PORT = 6379
