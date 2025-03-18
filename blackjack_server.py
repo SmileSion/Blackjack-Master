@@ -6,9 +6,18 @@ from game_logic.blackjack import start_game, hit_card, stand
 def handle_client(conn, addr):
     """处理客户端连接"""
     print(f"玩家 {addr} 连接成功")
-    conn.sendall("欢迎来到 21 点！输入 'start' 开始游戏。\n输入 'exit' 退出游戏。\n".encode("utf-8"))
+    conn.sendall("欢迎来到 21 点！请输入你的昵称：\n".encode("utf-8"))
 
-    player_id = str(addr)  # 使用 IP + 端口作为玩家 ID
+    # 获取玩家昵称作为玩家 ID
+    player_id = conn.recv(1024).decode().strip()
+    
+    if not player_id:
+        player_id = str(addr)  # 如果玩家没有输入昵称，则使用 IP + 端口作为玩家 ID
+
+    print(f"玩家 ID: {player_id}")
+
+    conn.sendall(f"欢迎，{player_id}！输入 'start' 开始游戏。\n输入 'exit' 退出游戏。\n".encode("utf-8"))
+    
     while True:
         try:
             data = conn.recv(1024).decode().strip().lower()
