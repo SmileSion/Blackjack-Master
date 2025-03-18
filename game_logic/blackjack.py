@@ -7,6 +7,24 @@ def start_game(player_id):
     deck = get_deck()
     player_hand = [deck.pop(), deck.pop()]
     dealer_hand = [deck.pop(), deck.pop()]
+    
+    player_score = calculate_hand_value(player_hand)
+    dealer_score = calculate_hand_value(dealer_hand)
+    
+    # 检测玩家和庄家是否同时 Blackjack
+    if player_score == 21 and dealer_score == 21:
+        redis_client.hset(player_id, "game_over", "True")
+        return f"😐 平局！你和庄家都拿到了 Blackjack！\n你的手牌: {player_hand}（21 点）\n庄家的手牌: {dealer_hand}（21 点）\n输入 'start' 重新开始游戏。"
+
+    # 检测玩家 Blackjack
+    if player_score == 21:
+        redis_client.hset(player_id, "game_over", "True")
+        return f"🎉 恭喜！你拿到了 Blackjack！\n你的手牌: {player_hand}（21 点）\n输入 'start' 重新开始游戏。"
+
+    # 检测庄家 Blackjack
+    if dealer_score == 21:
+        redis_client.hset(player_id, "game_over", "True")
+        return f"😢 庄家拿到了 Blackjack！\n你的手牌: {player_hand}（{player_score} 点）\n庄家的手牌: {dealer_hand}（21 点）\n输入 'start' 重新开始游戏。"
 
     game_data = {
         "deck": json.dumps(deck),
