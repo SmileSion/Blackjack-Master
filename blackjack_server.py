@@ -6,7 +6,7 @@ from game_logic.blackjack import start_game, hit_card, stand
 def handle_client(conn, addr):
     """处理客户端连接"""
     print(f"玩家 {addr} 连接成功")
-    conn.sendall("欢迎来到 21 点！输入 'start' 开始游戏。\n".encode("utf-8"))
+    conn.sendall("欢迎来到 21 点！输入 'start' 开始游戏。\n输入 'exit' 退出游戏。\n".encode("utf-8"))
 
     player_id = str(addr)  # 使用 IP + 端口作为玩家 ID
     while True:
@@ -21,10 +21,17 @@ def handle_client(conn, addr):
                 response = hit_card(player_id)
             elif data == "stand":
                 response = stand(player_id)
+            elif data == "exit":  # 添加处理 exit 输入
+                response = "👋 你已退出游戏。感谢你的参与！"
+                conn.sendall(response.encode() + b"\n")
+                break  # 退出循环，关闭连接
             else:
                 response = "❓ 无效指令，请输入 'start' / 'hit' / 'stand'。"
 
             conn.sendall(response.encode() + b"\n")
+        except ConnectionResetError:
+            print(f"玩家 {addr} 连接被重置")
+            break
         except Exception as e:
             print(f"错误: {e}")
             break

@@ -12,7 +12,7 @@ def start_game(player_id):
         "deck": json.dumps(deck),
         "player_hand": json.dumps(player_hand),
         "dealer_hand": json.dumps(dealer_hand),
-        "game_over": False
+        "game_over": "False"  # 确保存储的是字符串
     }
     redis_client.hmset(player_id, game_data)
 
@@ -40,10 +40,31 @@ def hit_card(player_id):
 
     return f"🃏 你拿到了 {player_hand}（{player_score} 点）\n输入 'hit'（要牌） 或 'stand'（停牌）。"
 
+def hit_card(player_id):
+    """玩家要牌"""
+    game_data = redis_client.hgetall(player_id)
+    if not game_data or game_data.get("game_over") == b"True":  # 注意：Redis 返回值是字节类型，比较时要转换为字节
+        return "⚠️ 你还没开始游戏！请输入 'start' 开始新一局。"
+
+    deck = json.loads(game_data["deck"])
+    player_hand = json.loads(game_data["player_hand"])
+
+    player_hand.append(deck.pop())
+    player_score = calculate_hand_value(player_hand)
+
+    redis_client.hset(player_id, "player_hand", json.dumps(player_hand))
+    redis_client.hset(player_id, "deck", json.dumps(deck))
+
+    if player_score > 21:
+        redis_client.hset(player_id, "game_over", "True")  # 存储 "True" 字符串
+        return f"😵 你爆牌了！\n你的手牌: {player_hand}（{player_score} 点）\n输入 'start' 重新开始游戏。"
+
+    return f"🃏 你拿到了 {player_hand}（{player_score} 点）\n输入 'hit'（要牌） 或 'stand'（停牌）。"
+
 def stand(player_id):
     """玩家停牌，庄家操作"""
     game_data = redis_client.hgetall(player_id)
-    if not game_data or game_data.get("game_over") == "True":
+    if not game_data or game_data.get("game_over") == b"True":  # 同样的，处理字节数据
         return "⚠️ 你还没开始游戏！请输入 'start' 开始新一局。"
 
     player_hand = json.loads(game_data["player_hand"])
@@ -58,7 +79,7 @@ def stand(player_id):
         dealer_score = calculate_hand_value(dealer_hand)
 
     redis_client.hset(player_id, "dealer_hand", json.dumps(dealer_hand))
-    redis_client.hset(player_id, "game_over", "True")
+    redis_client.hset(player_id, "game_over", "True")  # 存储 "True" 字符串
 
     if dealer_score > 21 or player_score > dealer_score:
         result = "🎉 你赢了！"
