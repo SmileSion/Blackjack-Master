@@ -14,7 +14,7 @@ def start_game(player_id):
         "dealer_hand": json.dumps(dealer_hand),
         "game_over": "False"  # 确保存储的是字符串
     }
-    redis_client.hmset(player_id, game_data)
+    redis_client.hset(player_id, mapping=game_data)
 
     return f"🎰 你拿到的牌: {player_hand}（{calculate_hand_value(player_hand)} 点）\n" \
            f"🃏 庄家的明牌: {dealer_hand[0]}\n输入 'hit'（要牌） 或 'stand'（停牌）。"
